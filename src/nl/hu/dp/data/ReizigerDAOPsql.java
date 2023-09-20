@@ -2,6 +2,7 @@ package nl.hu.dp.data;
 
 import nl.hu.dp.Main;
 import nl.hu.dp.domain.Adres;
+import nl.hu.dp.domain.OVChipkaart;
 import nl.hu.dp.domain.Reiziger;
 
 import java.sql.*;
@@ -33,6 +34,10 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 Main.getADAO().save(reiziger.getAdres());
             }
 
+            for (OVChipkaart ovkaart : reiziger.getOvKaarten()) {
+                Main.getOVDAO().save(ovkaart);
+            }
+
             return true;
 
         }catch (SQLException sqlex){
@@ -46,6 +51,9 @@ public class ReizigerDAOPsql implements ReizigerDAO{
     public boolean update(Reiziger reiziger) {
         try{
             if(reiziger.getAdres() != null) Main.getADAO().update(reiziger.getAdres());
+            for (OVChipkaart ovKaart : reiziger.getOvKaarten()){
+                Main.getOVDAO().update(ovKaart);
+            }
 
             String query = "UPDATE reiziger SET reiziger_id=?, voorletters=?, tussenvoegsel=?, achternaam=?, geboortedatum=? WHERE reiziger_id=?";
             PreparedStatement pst = ReizigerDAOPsql.conn.prepareStatement(query);
@@ -70,6 +78,9 @@ public class ReizigerDAOPsql implements ReizigerDAO{
         try{
 
             if(reiziger.getAdres() != null) Main.getADAO().delete(reiziger.getAdres());
+            for (OVChipkaart ovKaart : reiziger.getOvKaarten()){
+                Main.getOVDAO().delete(ovKaart);
+            }
 
             String query = "DELETE FROM reiziger WHERE reiziger_id=?";
             PreparedStatement pst = ReizigerDAOPsql.conn.prepareStatement(query);
@@ -100,7 +111,9 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 reiziger.setGeboortedatum(rs.getDate("geboortedatum"));
             }
             Adres adres = Main.getADAO().findByReiziger(reiziger);
+            List<OVChipkaart> ovKaarten = Main.getOVDAO().findByReiziger(reiziger);
             reiziger.setAdres(adres);
+            reiziger.setOvKaarten(ovKaarten);
 
             return reiziger;
 
@@ -127,7 +140,9 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 reiziger.setGeboortedatum(rs.getDate("geboortedatum"));
 
                 Adres adres = Main.getADAO().findByReiziger(reiziger);
+                List<OVChipkaart> ovKaarten = Main.getOVDAO().findByReiziger(reiziger);
                 reiziger.setAdres(adres);
+                reiziger.setOvKaarten(ovKaarten);
 
                 reizigers.add(reiziger);
             }
@@ -156,7 +171,10 @@ public class ReizigerDAOPsql implements ReizigerDAO{
                 reiziger.setGeboortedatum(rs.getDate("geboortedatum"));
 
                 Adres adres = Main.getADAO().findByReiziger(reiziger);
+                List<OVChipkaart> ovKaarten = Main.getOVDAO().findByReiziger(reiziger);
                 reiziger.setAdres(adres);
+                reiziger.setOvKaarten(ovKaarten);
+
 
                 reizigers.add(reiziger);
             }

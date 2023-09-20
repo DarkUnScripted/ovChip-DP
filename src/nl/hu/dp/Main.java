@@ -1,13 +1,12 @@
 package nl.hu.dp;
 
-import nl.hu.dp.data.AdresDAO;
-import nl.hu.dp.data.AdresDAOPsql;
-import nl.hu.dp.data.ReizigerDAO;
-import nl.hu.dp.data.ReizigerDAOPsql;
+import nl.hu.dp.data.*;
 import nl.hu.dp.domain.Adres;
+import nl.hu.dp.domain.OVChipkaart;
 import nl.hu.dp.domain.Reiziger;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.List;
 
 public class Main {
@@ -15,6 +14,7 @@ public class Main {
     private static Connection connection;
     private static ReizigerDAO RDAO;
     private static AdresDAO ADAO;
+    private static OVChipkaartDAO OVDAO;
 
     public static void main(String[] args) {
 
@@ -24,10 +24,12 @@ public class Main {
             //Initializing DAO's
             RDAO = new ReizigerDAOPsql(connection);
             ADAO = new AdresDAOPsql(connection);
+            OVDAO = new OVChipkaartDAOPsql(connection);
 
             //Testing
             testReizigerDAO(RDAO);
             testAdresDAO(ADAO);
+            testOVChipkaartDAO(OVDAO);
 
             closeConnection();
         }catch (SQLException sqlex){
@@ -74,7 +76,11 @@ public class Main {
         String gbdatum = "1981-03-14";
         Reiziger sietske = new Reiziger(77, "S", "", "Boers", java.sql.Date.valueOf(gbdatum));
         Adres adres = new Adres(20, "3249HS", "5431", "Langelaan", "Utrecht", sietske.getId());
+        List<OVChipkaart> ovKaarten = new ArrayList<>();
+        OVChipkaart ovKaart = new OVChipkaart(22, java.sql.Date.valueOf("2029-04-10"), 1, 25, 77);
+        ovKaarten.add(ovKaart);
         sietske.setAdres(adres);
+        sietske.setOvKaarten(ovKaarten);
         System.out.print("[Test] Eerst " + reizigers.size() + " reizigers, na ReizigerDAO.save() ");
         rdao.save(sietske);
 
@@ -130,11 +136,44 @@ public class Main {
         getRDAO().delete(getRDAO().findById(78));
     }
 
+    private static void testOVChipkaartDAO(OVChipkaartDAO ovdao) throws SQLException {
+        System.out.println("\n---------- Test OVDAO -------------");
+
+        // Retrieve all adresses from the database
+        List<OVChipkaart> ovKaarten = ovdao.findAll();
+        System.out.println("[Test] OVChipkaartDAO.findAll() geeft de volgende adressen:");
+        for (OVChipkaart ovKaart : ovKaarten) {
+            System.out.println(ovKaart.toString());
+        }
+        System.out.println();
+
+        // Create a new ov-card and assign it to the traveler + persist it.
+        OVChipkaart ovKaart = new OVChipkaart(21, java.sql.Date.valueOf("2029-04-20"), 2, 10, 1);
+        System.out.print("[Test] Eerst " + ovKaarten.size() + " adressen, na OVChipkaartDAO.save() ");
+        ovdao.save(ovKaart);
+
+        // Retrieve all adresses
+        ovKaarten = ovdao.findAll();
+        System.out.println(ovKaarten.size() + " adressen\n");
+
+        // Update the adres with a different value
+        ovKaart.setSaldo(12);
+        ovdao.update(ovKaart);
+
+        // Retrieve a single adress
+        OVChipkaart ovChipkaart = ovdao.findById(21);
+        System.out.println(ovChipkaart.toString());
+    }
+
     public static ReizigerDAO getRDAO() {
         return RDAO;
     }
 
     public static AdresDAO getADAO() {
         return ADAO;
+    }
+
+    public static OVChipkaartDAO getOVDAO() {
+        return OVDAO;
     }
 }
