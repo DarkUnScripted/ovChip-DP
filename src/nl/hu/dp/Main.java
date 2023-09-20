@@ -3,6 +3,7 @@ package nl.hu.dp;
 import nl.hu.dp.data.*;
 import nl.hu.dp.domain.Adres;
 import nl.hu.dp.domain.OVChipkaart;
+import nl.hu.dp.domain.Product;
 import nl.hu.dp.domain.Reiziger;
 
 import java.sql.*;
@@ -16,6 +17,8 @@ public class Main {
     private static AdresDAO ADAO;
     private static OVChipkaartDAO OVDAO;
 
+    private static ProductDAO PDAO;
+
     public static void main(String[] args) {
 
         try {
@@ -25,11 +28,13 @@ public class Main {
             RDAO = new ReizigerDAOPsql(connection);
             ADAO = new AdresDAOPsql(connection);
             OVDAO = new OVChipkaartDAOPsql(connection);
+            PDAO = new ProductDAOPsql(connection);
 
             //Testing
             testReizigerDAO(RDAO);
             testAdresDAO(ADAO);
             testOVChipkaartDAO(OVDAO);
+            testProductDAO(PDAO);
 
             closeConnection();
         }catch (SQLException sqlex){
@@ -139,30 +144,76 @@ public class Main {
     private static void testOVChipkaartDAO(OVChipkaartDAO ovdao) throws SQLException {
         System.out.println("\n---------- Test OVDAO -------------");
 
-        // Retrieve all adresses from the database
+        // Retrieve all ov-cards from the database
         List<OVChipkaart> ovKaarten = ovdao.findAll();
-        System.out.println("[Test] OVChipkaartDAO.findAll() geeft de volgende adressen:");
+        System.out.println("[Test] OVChipkaartDAO.findAll() geeft de volgende ov-kaarten:");
         for (OVChipkaart ovKaart : ovKaarten) {
             System.out.println(ovKaart.toString());
         }
         System.out.println();
 
-        // Create a new ov-card and assign it to the traveler + persist it.
-        OVChipkaart ovKaart = new OVChipkaart(21, java.sql.Date.valueOf("2029-04-20"), 2, 10, 1);
-        System.out.print("[Test] Eerst " + ovKaarten.size() + " adressen, na OVChipkaartDAO.save() ");
+        // Create a new ov-card and persist it.
+        OVChipkaart ovKaart = new OVChipkaart(22, java.sql.Date.valueOf("2029-04-20"), 2, 10, 1);
+        Product product = new Product(22, "Test", "Testing", 20);
+        ovKaart.addProduct(product);
+        System.out.print("[Test] Eerst " + ovKaarten.size() + " ov-kaarten, na OVChipkaartDAO.save() ");
         ovdao.save(ovKaart);
 
-        // Retrieve all adresses
+        // Retrieve all ov-cards
         ovKaarten = ovdao.findAll();
-        System.out.println(ovKaarten.size() + " adressen\n");
+        System.out.println(ovKaarten.size() + " ov-kaarten\n");
 
-        // Update the adres with a different value
+        // Update the ov-card with a different value
         ovKaart.setSaldo(12);
+        System.out.println(ovKaart);
         ovdao.update(ovKaart);
 
-        // Retrieve a single adress
-        OVChipkaart ovChipkaart = ovdao.findById(21);
+        // Retrieve a single ov-card
+        OVChipkaart ovChipkaart = ovdao.findById(22);
         System.out.println(ovChipkaart.toString());
+
+        //Clean up objects in database
+        ovdao.delete(ovChipkaart);
+        for (Product deleteProduct : ovChipkaart.getProducten()){
+            Main.getPDAO().delete(deleteProduct);
+        }
+    }
+
+    private static void testProductDAO(ProductDAO pdao) throws SQLException {
+        System.out.println("\n---------- Test PDAO -------------");
+
+        // Retrieve all products from the database
+        List<Product> producten = pdao.findAll();
+        System.out.println("[Test] PDAO.findAll() geeft de volgende producten:");
+        for (Product product : producten) {
+            System.out.println(product.toString());
+        }
+        System.out.println();
+
+        // Create a new product and persist it.
+        Product product = new Product(21, "Test", "Testing", 20);
+
+        OVChipkaart ovKaart = new OVChipkaart(21, java.sql.Date.valueOf("2029-04-20"), 2, 10, 1);
+        getOVDAO().save(ovKaart);
+        product.addChipkaart(ovKaart);
+
+        System.out.print("[Test] Eerst " + producten.size() + " producten, na PDAO.save() ");
+        pdao.save(product);
+
+        // Retrieve all products
+        producten = pdao.findAll();
+        System.out.println(producten.size() + " producten\n");
+
+        // Update the product with a different value
+        product.setPrijs(12);
+        pdao.update(product);
+
+        // Retrieve a single product
+        Product product2 = pdao.findById(21);
+        System.out.println(product2.toString());
+
+        pdao.delete(product2);
+        getOVDAO().delete(ovKaart);
     }
 
     public static ReizigerDAO getRDAO() {
@@ -175,5 +226,9 @@ public class Main {
 
     public static OVChipkaartDAO getOVDAO() {
         return OVDAO;
+    }
+
+    public static ProductDAO getPDAO() {
+        return PDAO;
     }
 }

@@ -1,6 +1,8 @@
 package nl.hu.dp.domain;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 public class OVChipkaart {
 
@@ -9,9 +11,10 @@ public class OVChipkaart {
     private int klasse;
     private int saldo;
     private int reizigerId;
+    private List<Product> producten;
 
     public OVChipkaart(){
-
+        this.producten = new ArrayList<>();
     }
 
     public OVChipkaart(int kaart_nummer, Date geldigTot, int klasse, int saldo, int reizigerId){
@@ -20,6 +23,7 @@ public class OVChipkaart {
         this.klasse = klasse;
         this.saldo = saldo;
         this.reizigerId = reizigerId;
+        this.producten = new ArrayList<>();
     }
 
 
@@ -43,6 +47,10 @@ public class OVChipkaart {
         return reizigerId;
     }
 
+    public List<Product> getProducten() {
+        return producten;
+    }
+
     public void setKaart_nummer(int kaart_nummer) {
         this.kaart_nummer = kaart_nummer;
     }
@@ -63,8 +71,22 @@ public class OVChipkaart {
         this.reizigerId = reizigerId;
     }
 
+    public void setProducten(List<Product> producten) {
+        this.producten = producten;
+    }
+
+    public void addProduct(Product product) {
+        this.producten.add(product);
+        product.addChipkaart(this);
+    }
+
+    public void removeProduct(Product product){
+        product.removeChipkaart(this);
+        this.producten.remove(product);
+    }
+
     @Override
     public String toString() {
-        return "OVKaart: #" + this.kaart_nummer + " { Saldo: " + this.saldo + ", Geldig tot: " + this.geldigTot + ", Klasse: " + this.klasse + " }";
+        return "OVKaart: #" + this.kaart_nummer + " { Saldo: " + this.saldo + ", Geldig tot: " + this.geldigTot + ", Klasse: " + this.klasse + " Producten: \n    " + producten.toString() + "\n}";
     }
 }
